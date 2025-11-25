@@ -1,103 +1,208 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sound System Workflow (Mobile Final)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound System Workflow (Mobile)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { 
-            height: 100%; 
-            width: 100%; 
-            overflow: hidden; 
-            font-size: 16px; /* Set a base font size for responsive units */
-        }
-        body {
-            background-color: #0a0a0a;
-            font-family: 'Urbanist', sans-serif;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+/* 1. SETUP DASAR (MOBILE FIRST) */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .slide-container {
-            display: none;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            background-color: #121212;
-            position: relative;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 20px; /* Mobile-first padding */
-            animation: fadeIn 0.4s ease-in-out;
-        }
-        .slide-container.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+body {
+    background-color: #0a0a0a;
+    display: flex; 
+    justify-content: center;
+    align-items: flex-start; /* Align top untuk scrolling */
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Body tidak scroll, container slide yang scroll */
+    font-family: 'Urbanist', sans-serif;
+    color: #e0e0e0;
+}
 
-        .slide-container::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.95)),
-            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            z-index: 0; pointer-events: none;
-        }
-        .slide-container > * { position: relative; z-index: 1; }
+/* 2. SLIDE CONTAINER (Mobile Optimized) */
+.slide-container {
+    display: none;
+    width: 100%;
+    height: 100%; /* Full Screen di HP */
+    background-color: #121212;
+    position: relative;
+    overflow-y: auto; /* Scroll vertikal aktif */
+    overflow-x: hidden;
+    flex-direction: column;
+    padding: 20px 20px 80px 20px; /* Padding bawah besar untuk nav buttons */
+    animation: fadeIn 0.3s ease-in-out;
+}
 
-        h1, h2, h3 { font-weight: 700; color: #ffffff; line-height: 1.1; margin-bottom: 0.5em; }
-        h1 { font-size: 2.5rem; }
-        h2 { font-size: 2rem; }
-        h3 { font-size: 1.5rem; color: #00ff9d; }
-        p, li, .subtitle { font-size: 1rem; line-height: 1.6; color: #b0b0b0;}
-        .subtitle { font-size: 1.25rem; color: #00ff9d; font-weight: 300; margin-top: 1rem; }
+.slide-container.active { display: flex; }
 
-        ul { list-style: none; }
-        li { margin-bottom: 0.75rem; padding-left: 2em; position: relative; }
-        li::before { content: '\f054'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; left: 0; color: #00ff9d; font-size: 1rem; top: 0.25em; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-        .tech-font { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; background: #222; padding: 0.25em 0.5em; border-radius: 4px; color: #ff3366; }
+/* Pattern Background */
+.slide-container::before {
+    content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.95)),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    z-index: 0; pointer-events: none;
+}
+.slide-container > * { position: relative; z-index: 1; }
 
-        .content-area { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; width: 100%; }
-        .two-column { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: center; width:100%; }
-        .image-wrapper { width: 100%; height: auto; max-height: 250px; border-radius: 12px; overflow: hidden; margin: 1rem 0; }
-        .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .title-layout { text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+/* 3. TYPOGRAPHY (Mobile Sizes) */
+h1 { font-weight: 700; color: #ffffff; line-height: 1.1; font-size: 36px; margin-bottom: 10px; }
+h2 { font-weight: 700; color: #ffffff; line-height: 1.2; font-size: 28px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+h3 { font-weight: 700; color: #00ff9d; margin-bottom: 10px; font-size: 22px; }
+p, li, .subtitle { font-size: 16px; line-height: 1.6; color: #b0b0b0; }
+.subtitle { font-size: 18px; color: #00ff9d; font-weight: 300; margin-top: 10px; }
 
-        .nav-controls {
-            position: fixed; bottom: 20px; right: 50%; transform: translateX(50%); display: flex; align-items: center; gap: 15px; z-index: 1000;
-            background: #1a1a1a; padding: 10px 20px; border-radius: 50px; border: 1px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-        }
-        .nav-btn { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; padding: 5px 10px; }
-        .slide-counter { font-family: 'JetBrains Mono'; color: #666; font-size: 14px; }
+ul { list-style: none; padding-left: 0; }
+li { margin-bottom: 10px; padding-left: 25px; position: relative; }
+li::before { content: '\f054'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; left: 0; color: #00ff9d; font-size: 14px; top: 4px; }
 
-        .placeholder-box {
-            background: #222; border: 2px dashed #444; border-radius: 8px;
-            padding: 20px; margin-top: 20px; text-align: left;
-        }
-        .placeholder-box h4 { font-size: 1.1rem; color: #ffd700; margin-bottom: 10px; }
-        .placeholder-box p { font-size: 0.9rem; color: #aaa; }
+.tech-font { font-family: 'JetBrains Mono', monospace; font-size: 14px; background: #222; padding: 4px 8px; border-radius: 4px; color: #ff3366; }
 
-        /* DESKTOP OVERRIDES */
-        @media (min-width: 769px) {
-            .slide-container {
-                padding: 60px;
-                justify-content: center;
-            }
-            .two-column {
-                grid-template-columns: 1fr 1fr;
-                gap: 40px;
-            }
-            h1 { font-size: 3.5rem; }
-            h2 { font-size: 2.6rem; }
-            h3 { font-size: 1.75rem; }
-            p, li, .subtitle { font-size: 1.125rem; }
-            .subtitle { font-size: 1.5rem; }
-            .image-wrapper { max-height: 300px; }
-        }
+/* BUTTONS */
+.demo-btn {
+    display: block; width: 100%; text-align: center;
+    margin-top: 20px; padding: 15px;
+    background: transparent; border: 2px solid #00ff9d; color: #00ff9d;
+    font-weight: 700; text-decoration: none; border-radius: 12px;
+    transition: all 0.3s ease; font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; cursor: pointer;
+}
+.demo-btn:active { background: #00ff9d; color: #000; transform: scale(0.98); }
+.demo-btn i { margin-right: 10px; }
+
+/* 4. LAYOUTS (Single Column for Mobile) */
+.content-area { display: flex; flex-direction: column; width: 100%; }
+.two-column { display: flex; flex-direction: column; gap: 30px; }
+
+/* Image Handling */
+.image-wrapper { 
+    width: 100%; 
+    height: 250px; /* Fixed height for mobile visual consistency */
+    border-radius: 12px; overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; 
+    margin-bottom: 20px;
+}
+.image-wrapper img, .image-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+
+/* Title Page Special */
+.title-layout { 
+    text-align: center; display: flex; flex-direction: column; justify-content: center; 
+    min-height: 60vh; 
+    border: 2px solid #00ff9d; border-radius: 12px; 
+    background: linear-gradient(135deg, rgba(0,255,157,0.05) 0%, rgba(0,0,0,0) 100%); 
+    padding: 20px;
+}
+.title-layout h1 span { color: #00ff9d; }
+
+/* Tiled Content */
+.tiled-content { display: grid; grid-template-columns: 1fr; gap: 15px; }
+.tile { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px; }
+.tile .icon { font-size: 30px; color: #00ff9d; margin-bottom: 15px; }
+
+/* Bleed Layout (Stacking) */
+.slide-container.bleed-image-layout { padding: 0; overflow-y: auto; }
+.slide-container.active.bleed-image-layout { display: flex; flex-direction: column-reverse; }
+.bleed-text-side { padding: 30px 20px 100px 20px; background-color: #121212; z-index: 2; }
+.bleed-image-side { width: 100%; height: 300px; object-fit: cover; flex-shrink: 0; }
+
+/* Number Cards */
+.highlight-numbers-layout { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+.number-card { background: #1a1a1a; border-left: 4px solid #00ff9d; padding: 20px; display: flex; align-items: center; gap: 20px; }
+.number-card .number { font-size: 40px; font-weight: 700; color: #00ff9d; line-height: 1; min-width: 50px; text-align: center; }
+.number-card h3 { margin: 0 0 5px 0; font-size: 18px; }
+.number-card p { margin: 0; font-size: 14px; }
+
+/* Rounded Image */
+.rounded-image-layout { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+.rounded-image-wrapper { width: 250px; height: 250px; border-radius: 50%; overflow: hidden; border: 4px solid #333; flex-shrink: 0; }
+.rounded-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+/* QA Layout */
+.qa-layout { text-align: center; border: 2px dashed #333; padding: 40px 20px; border-radius: 20px; margin-top: 20px; }
+.qa-layout h2 { font-size: 60px; color: #00ff9d; margin-bottom: 10px; }
+
+/* HOTSPOT INTERACTIVE (MOBILE) */
+.interactive-mixer {
+    position: relative;
+    width: 100%;
+    height: 300px; /* Tinggi tetap untuk mobile */
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #00ff9d;
+    background: #050505;
+}
+.interactive-mixer img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+/* Hotspot Full Size */
+.hotspot {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: transparent; cursor: pointer; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+}
+.hotspot span {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 20px; border-radius: 50px;
+    border: 2px solid #ffd700; font-size: 16px; font-weight: bold;
+    color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(0.95); } }
+
+/* CSS FLOWCHART */
+.flowchart-container { gap: 10px; }
+.flow-box { width: 100%; padding: 15px; font-size: 16px; text-align: left; display: flex; align-items: center; }
+.flow-box::before { content: '• '; margin-right: 10px; color: #666; }
+.flow-arrow { font-size: 20px; color: #444; }
+
+/* NAVIGATION CONTROLS (Fixed Bottom) */
+.nav-controls {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background: rgba(26, 26, 26, 0.95);
+    padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 1000; border-top: 1px solid #333;
+    backdrop-filter: blur(10px);
+}
+.nav-btn {
+    background: #333; border: none; color: #fff;
+    width: 50px; height: 50px; border-radius: 50%;
+    font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+}
+.nav-btn:active { background: #00ff9d; color: black; }
+.slide-counter { font-family: 'JetBrains Mono'; color: #888; font-size: 14px; font-weight: bold; }
+
+/* DESKTOP OVERRIDE (Jika dibuka di layar besar) */
+@media (min-width: 1024px) {
+    .slide-container { 
+        max-width: 1280px; height: 720px; margin: auto; 
+        border-radius: 16px; border: 1px solid #333;
+        justify-content: center; padding: 60px;
+        /* Kembalikan layout 2 kolom */
+        overflow: hidden;
+    }
+    .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+    .image-wrapper { height: 100%; margin-bottom: 0; }
+    .tiled-content { grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .highlight-numbers-layout { flex-direction: row; }
+    .nav-controls { 
+        width: auto; left: auto; right: 20px; bottom: 20px; 
+        border-radius: 50px; border: 1px solid #333; background: #1a1a1a; 
+    }
+    /* Re-enable Scale for Desktop Only */
+    body { overflow: hidden; }
+}
     </style>
 </head>
 <body>
@@ -106,8 +211,8 @@
 <div class="slide-container active">
     <div class="title-layout">
         <h1>Sound System<br><span>Workflow</span></h1>
-        <p class="subtitle">Pelatihan PIC Sound System PT. Cikarang Listrindo</p>
-        <div style="margin-top: 40px; font-family: 'JetBrains Mono'; color: #666;">Fasilitator: Ahmad Supriyadi</div>
+        <p class="subtitle">Dari Fisika Suara hingga Manajemen Kabel</p>
+        <div style="margin-top: 40px; font-family: 'JetBrains Mono'; color: #666;">v.1.0 // AUDIO_ENG_DECK</div>
     </div>
 </div>
 
@@ -121,12 +226,12 @@
             </div>
             <div>
                 <h3>Roadmap Materi</h3>
-                <ul style="font-size: 24px; line-height: 1.8;">
-                    <li style="margin-bottom: 20px;"><strong style="color: #00ff9d;">1. Sekilas Teori Suara</strong></li>
-                    <li style="margin-bottom: 20px;"><strong style="color: #00ff9d;">2. Pra-Acara</strong></li>
-                    <li style="margin-bottom: 20px;"><strong style="color: #00ff9d;">3. Teknis Penggunaan Alat</strong></li>
-                    <li style="margin-bottom: 20px;"><strong style="color: #00ff9d;">4. Pasca Acara</strong></li>
-                    <li><strong style="color: #00ff9d;">5. Maintenance</strong></li>
+                <ul style="font-size: 18px; line-height: 1.6;">
+                    <li><strong style="color: #00ff9d;">1. Sekilas Teori Suara</strong><br>Fisika suara, frekuensi, & harmonik.</li>
+                    <li><strong style="color: #00ff9d;">2. Pra-Acara</strong><br>Setup, layout, & manajemen kabel.</li>
+                    <li><strong style="color: #00ff9d;">3. Teknis Penggunaan Alat</strong><br>Signal flow, mixer, & gain staging.</li>
+                    <li><strong style="color: #00ff9d;">4. Pasca Acara</strong><br>Ritual mematikan & membereskan alat.</li>
+                    <li><strong style="color: #00ff9d;">5. Maintenance</strong><br>Tips merawat aset agar awet.</li>
                 </ul>
             </div>
         </div>
@@ -140,15 +245,17 @@
         <div class="two-column">
             <div>
                 <h3>Bukan Angin, Tapi Energi</h3>
-                <p>Bayangkan sebuah batu dilempar ke kolam yang tenang. Airnya tidak berpindah, melainkan <strong>energinya</strong> yang merambat.</p>
-                <p>Suara bekerja dengan cara yang sama. Molekul udara hanya bergetar di tempat, menghantarkan energi dari speaker ke telinga kita.</p>
-                <div class="placeholder-box">
-                    <h4><i class="fa-solid fa-water"></i> Info Simulasi</h4>
-                    <p>Pada versi interaktif, tombol akan membuka simulasi yang menunjukkan bagaimana energi merambat dan berinteraksi dengan permukaan (memantul atau terserap).</p>
-                </div>
+                <p>Bayangkan sebuah batu dilempar ke kolam yang tenang. Airnya tidak berpindah ke pinggir, melainkan <strong>energinya</strong> yang merambat melalui medium air.</p>
+                <p>Suara bekerja dengan cara yang sama.</p>
+                
+                <a href="water_ripple.html" class="demo-btn">
+                    <i class="fa-solid fa-water"></i> Buka Simulasi Air
+                </a>
             </div>
             <div class="image-wrapper">
-                 <img src="gambar/ripple.png" alt="Riak air">
+                 <video autoplay loop muted playsinline>
+                    <source src="gambar/ripple.mp4" type="video/mp4">
+                </video>
             </div>
         </div>
     </div>
@@ -161,16 +268,18 @@
         <div class="two-column">
             <div>
                 <h3>Direct vs. Reflected</h3>
-                <p>Suara menyebar dan berinteraksi dengan ruangan.</p>
-                <ul style="margin-top: 20px;">
+                <ul>
                     <li><strong>Direct Sound:</strong> Suara langsung ke telinga (Paling jernih).</li>
-                    <li><strong>Reflection (Pantulan):</strong> Suara menabrak dinding keras (Gema).</li>
-                    <li><strong>Absorption (Serapan):</strong> Suara diserap benda lunak.</li>
+                    <li><strong>Reflection:</strong> Suara pantulan tembok. Terlalu banyak = Gema.</li>
+                    <li><strong>Absorption:</strong> Benda lunak menyerap energi suara.</li>
                 </ul>
-                <div class="placeholder-box">
-                    <h4><i class="fa-solid fa-layer-group"></i> Info Simulasi</h4>
-                    <p>Simulasi menunjukkan bagaimana gelombang memantul pada "tembok" dan diserap oleh "busa", mirip dengan akustik ruangan.</p>
+                <div style="margin-top: 10px; padding: 10px; background: #222; border-left: 4px solid #00ff9d; border-radius: 4px;">
+                    <p style="font-size: 14px; margin:0;"><strong>Koneksi ke Efek:</strong><br>Pantulan ini ditiru menjadi efek <em>Reverb</em> & <em>Delay</em>.</p>
                 </div>
+
+                <a href="water_ripple.html" class="demo-btn">
+                    <i class="fa-solid fa-layer-group"></i> Buka Simulasi Akustik
+                </a>
             </div>
             <div class="image-wrapper">
                 <img src="gambar/treatment.png" alt="Acoustic foam studio sound treatment">
@@ -188,18 +297,18 @@
                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Sine_waves_different_frequencies.svg/1200px-Sine_waves_different_frequencies.svg.png" style="object-fit: contain; filter: invert(1);" alt="Sound wave frequency amplitude diagram">
             </div>
             <div>
-                <div style="margin-bottom: 30px;">
+                <div style="margin-bottom: 20px;">
                     <h3>1. Frekuensi (Pitch)</h3>
-                    <p>Diukur dalam <span class="tech-font">Hertz (Hz)</span>. Menentukan tinggi rendahnya nada.</p>
+                    <p>Tinggi rendahnya nada (Hz). Gelombang rapat = Treble.</p>
                 </div>
                 <div>
                     <h3>2. Amplitudo (Loudness)</h3>
-                    <p>Diukur dalam <span class="tech-font">Decibel (dB)</span>. Menentukan keras lemahnya suara.</p>
+                    <p>Keras lemahnya suara (dB). Gelombang tinggi = Keras.</p>
                 </div>
-                <div class="placeholder-box">
-                    <h4><i class="fa-solid fa-wave-square"></i> Info Lab Frekuensi</h4>
-                    <p>Pada versi interaktif, lab ini memungkinkan perubahan frekuensi dan amplitudo secara real-time untuk mendengar dan melihat perbedaannya.</p>
-                </div>
+
+                <a href="sound_wave.html" class="demo-btn">
+                    <i class="fa-solid fa-wave-square"></i> Buka Lab Frekuensi
+                </a>
             </div>
         </div>
     </div>
@@ -210,82 +319,398 @@
     <h2 class="slide-title">Harmonics & Timbre</h2>
     <div class="content-area">
         <div class="two-column">
-            <div class="image-wrapper" style="background: #1a1a1a; border: 2px dashed #333; display: flex; align-items: center; justify-content: center;">
+            <div class="image-wrapper" style="background: #1a1a1a; border: 2px dashed #333;">
                <img src="gambar/harmonic.png" style="object-fit: contain;" alt="Wave summation diagram">
             </div>
             <div>
                 <h3>Bukan Sekadar Sinus</h3>
-                <p>Suara alami memiliki <strong>Warna Suara (Timbre)</strong>, yang terbentuk dari nada dasar (Fundamental) dan kelipatannya (Harmonics).</p>
-                <div class="placeholder-box">
-                    <h4><i class="fa-solid fa-chart-area"></i> Info Lab Harmonik</h4>
-                    <p>Simulasi menunjukkan bagaimana berbagai level harmonik dapat digabungkan untuk menciptakan warna suara yang berbeda.</p>
+                <p>Suara alami memiliki <strong>Warna Suara (Timbre)</strong>.</p>
+                <ul>
+                    <li><strong>Fundamental:</strong> Nada dasar (misal A = 440Hz).</li>
+                    <li><strong>Harmonics:</strong> Kelipatan frekuensi halus di atasnya.</li>
+                </ul>
+                <p>Inilah yang membedakan suara Gitar vs Piano di nada yang sama.</p>
+
+                <a href="harmonics_lab.html" class="demo-btn" style="border-color: #ff3366; color: #ff3366;">
+                    <i class="fa-solid fa-chart-area"></i> Buka Lab Harmonik
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Pre-Production -->
+<div class="slide-container">
+    <h2 class="slide-title">Pre-Production Checklist</h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                <h3>Technical Rider</h3>
+                <p>Daftar alat permintaan artis/klien.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Power</h3>
+                <p>Pastikan daya cukup & grounding aman.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <h3>Loading In</h3>
+                <p>Atur alur masuk barang (Berat duluan).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: Layout (Bleed Image) -->
+<div class="slide-container bleed-image-layout">
+    <div class="bleed-text-side">
+        <h2>Stage Layout</h2>
+        <h3>FOH vs Monitor</h3>
+        <p><strong>FOH:</strong> Speaker utama ke penonton.</p>
+        <p><strong>Monitor:</strong> Speaker ke pemain di panggung.</p>
+        <br>
+        <p class="tech-font">RULE: Jangan taruh mic di depan speaker aktif!</p>
+    </div>
+    <img class="bleed-image-side" src="gambar/layout.png" alt="Live sound stage layout diagram">
+</div>
+
+<!-- Slide 9: Meeting Room Layout -->
+<div class="slide-container">
+    <h2 class="slide-title">Meeting Room Layout</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <img src="gambar/mrlayout.png" alt="Conference room meeting setup">
+            </div>
+            <div>
+                <h3>Distributed System</h3>
+                <p>Prioritas: Kejelasan suara merata (bukan keras).</p>
+                <ul>
+                    <li><strong>Ceiling Speakers:</strong> Speaker plafon banyak & menyebar.</li>
+                    <li><strong>Table Mics:</strong> Mic meja (Gooseneck).</li>
+                </ul>
+                <div style="margin-top: 10px; padding: 10px; border: 1px solid #00ff9d; border-radius: 8px;">
+                    <p class="tech-font" style="margin:0; font-size: 12px;">GOAL: Speech Clarity</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Slide 7: Pre-Production Checklist -->
+<!-- Slide 10: Cable Management -->
 <div class="slide-container">
-    <h2 class="slide-title">Pre-Production Checklist</h2>
+    <h2 class="slide-title">Cable Management</h2>
     <div class="content-area">
-        <div class="tiled-content" style="display:grid; grid-template-columns: 1fr; gap: 20px;">
-            <div class="tile" style="background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 30px;">
-                <div class="icon" style="font-size: 40px; color: #00ff9d; margin-bottom: 20px;"><i class="fa-solid fa-clipboard-list"></i></div>
-                <h3>Technical Rider</h3><p>Dokumen berisi daftar alat yang diminta artis. Selalu cross-check inventaris dengan rider.</p>
+        <div class="two-column">
+            <div>
+                <h3>Organized chaos? No.</h3>
+                <ul>
+                    <li><strong>Labelling:</strong> Tandai ujung kabel.</li>
+                    <li><strong>Separation:</strong> Pisah kabel Audio & Listrik.</li>
+                    <li><strong>Safety:</strong> Gunakan gaffer tape.</li>
+                </ul>
             </div>
-            <div class="tile" style="background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 30px;">
-                <div class="icon" style="font-size: 40px; color: #00ff9d; margin-bottom: 20px;"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Power Requirement</h3><p>Pastikan venue memiliki daya listrik cukup. Pisahkan jalur audio dari lighting.</p>
-            </div>
-            <div class="tile" style="background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 30px;">
-                <div class="icon" style="font-size: 40px; color: #00ff9d; margin-bottom: 20px;"><i class="fa-solid fa-boxes-stacked"></i></div>
-                <h3>Loading In</h3><p>Atur alur masuk barang. Barang berat masuk duluan, barang sensitif belakangan.</p>
+            <div class="image-wrapper">
+                <img src="gambar/kabel.webp" alt="Professional patch bay audio cabling">
             </div>
         </div>
     </div>
 </div>
 
+<!-- Slide 11: Power On Ritual -->
+<div class="slide-container">
+    <h2 class="slide-title">The Golden Rule: Power ON</h2>
+    <p>Cegah speaker rusak (JEDUG).</p>
+    <div class="content-area">
+        <div class="highlight-numbers-layout">
+            <div class="number-card active">
+                <div class="number">1</div>
+                <h3>Source</h3>
+                <p>Instrumen & Mic.</p>
+            </div>
+            <div class="number-card active">
+                <div class="number">2</div>
+                <h3>Mixer</h3>
+                <p>Otak sistem.</p>
+            </div>
+            <div class="number-card active">
+                <div class="number">3</div>
+                <h3>Speaker</h3>
+                <p>Nyalakan TERAKHIR.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Slide 8 to 16 would follow a similar pattern -->
+<!-- Slide 12: SIGNAL FLOW -->
+<div class="slide-container">
+    <h2 class="slide-title">Signal Flow Theory</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <img src="gambar/signalflow.png" alt="Audio Signal Flow Diagram">
+            </div>
+            <div>
+                <h3>Alur Sederhana</h3>
+                <div class="flowchart-container">
+                    <div class="flow-box">Input (Sumber)</div>
+                    <div class="flow-arrow">⬇</div>
+                    <div class="flow-box active">Process (Mixer)</div>
+                    <div class="flow-arrow">⬇</div>
+                    <div class="flow-box">Output (Speaker)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Slide 13: INPUT TYPES -->
+<div class="slide-container">
+    <h2 class="slide-title">The Source: Microphones</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <img src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=2070&auto=format&fit=crop" alt="Dynamic vs Condenser Microphones">
+            </div>
+            <div>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #00ff9d;">🎤 Dynamic Mic</h4>
+                    <p>Tahan banting, panggung keras, tanpa daya.</p>
+                </div>
+                <div>
+                    <h4 style="color: #00d2ff;">🎙️ Condenser Mic</h4>
+                    <p>Sensitif, studio/choir, butuh <strong>Phantom Power +48V</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 14: Wireless Mic Handling -->
+<div class="slide-container">
+    <h2 class="slide-title">Wireless Microphone</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Zero Failure Protocol</h3>
+                <ul>
+                    <li><strong>Battery:</strong> Selalu ganti baru.</li>
+                    <li><strong>Line of Sight:</strong> Antena jangan terhalang tembok/besi.</li>
+                    <li><strong>Grip:</strong> Jangan genggam buntut mic (antena).</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <img src="gambar/wireless.png" alt="Wireless microphone receiver">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 15: Source: Laptop / PC -->
+<div class="slide-container">
+    <h2 class="slide-title">Source: Laptop / PC</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <img src="gambar/laptop.png" alt="Laptop DJ setup">
+            </div>
+            <div>
+                <h3>Digital Source Etiquette</h3>
+                <ul>
+                    <li><strong>Volume:</strong> Set Laptop <span style="color:#00ff9d">100%</span>.</li>
+                    <li><strong>Koneksi:</strong> Gunakan <strong>DI Box</strong> atau USB Audio Interface.</li>
+                    <li><strong>Multimedia:</strong> HDMI ke TV, Audio Out TV ke Mixer.</li>
+                    <li><strong>Wajib:</strong> Mode "Do Not Disturb" & Charger.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 16: CONNECTORS -->
+<div class="slide-container">
+    <h2 class="slide-title">The Connections</h2>
+    <p>Kamus Visual Konektor Audio.</p>
+    <div class="content-area">
+        <div class="image-wrapper" style="background: #fff; padding: 10px;">
+            <img src="gambar/connectors.png" style="object-fit: contain;" alt="Audio Connector Chart">
+        </div>
+    </div>
+</div>
 
 <!-- Slide 17: MIXER ANATOMY -->
 <div class="slide-container">
     <h2 class="slide-title">Mixer Anatomy</h2>
     <div class="content-area">
-        <p style="text-align:center;">Mixer terlihat rumit, padahal itu hanya <strong>satu channel yang dicopy-paste</strong>.</p>
-        <div class="image-wrapper">
+        <div class="interactive-mixer">
             <img src="gambar/mixer.webp" alt="Top down view of audio mixer">
+            <!-- HOTSPOT FULL -->
+            <a href="mixer_sim.html" class="hotspot">
+                <span>🔍 Masuk ke Simulator</span>
+            </a>
         </div>
-        <div class="placeholder-box">
-            <h4><i class="fa-solid fa-sliders"></i> Info Simulator Mixer</h4>
-            <p>Versi interaktif memiliki simulator untuk mencoba fungsi-fungsi utama pada channel strip mixer, seperti Gain, EQ, dan Fader.</p>
+        <p style="text-align: center; margin-top: 10px; color: #00ff9d; font-size: 14px;">
+            Klik gambar untuk simulasi
+        </p>
+    </div>
+</div>
+
+<!-- Slide 18: Sound Check (Gain Staging) -->
+<div class="slide-container">
+    <h2 class="slide-title">Gain Staging</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2070&auto=format&fit=cover" style="object-fit: cover;" alt="Mixer gain knob with green signal">
+            </div>
+            <div>
+                <h3>Gain vs Volume</h3>
+                <p><strong>Gain</strong> = Sensitivitas Input.<br><strong>Fader</strong> = Volume Output.</p>
+                <ul style="margin-top:10px">
+                    <li>Set Fader di 0 (Unity).</li>
+                    <li>Buka Gain sampai lampu Hijau/Kuning.</li>
+                    <li>Hindari Merah (Clip)!</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- All other slides from PRESENTASI.html would be here, with links replaced by placeholders -->
+<!-- Slide 19: Live Patching Protocol -->
+<div class="slide-container">
+    <h2 class="slide-title">Live Patching Protocol</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Colok Alat Saat Acara?</h3>
+                <p>Cegah bunyi "POP" dengan urutan:</p>
+                <div style="background: #222; padding: 15px; border-radius: 12px; border-left: 4px solid #ff3366;">
+                    <ol style="margin: 0; padding-left: 20px;">
+                        <li><strong>MUTE</strong> & Fader Turun.</li>
+                        <li>Colok Kabel.</li>
+                        <li>Atur Gain.</li>
+                        <li>Cek <strong>SOLO (PFL)</strong> di headphone.</li>
+                        <li>Buka MUTE & Angkat Fader.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="image-wrapper">
+                <img src="gambar/patching.png" alt="Hand adjusting audio mixer fader">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 20: Troubleshooting -->
+<div class="slide-container">
+    <h2 class="slide-title">Troubleshooting</h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-volume-xmark" style="color:#ff3366"></i></div>
+                <h3>Mati?</h3>
+                <p>Cek Mute, Kabel, Power.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-ear-listen" style="color:#ffd700"></i></div>
+                <h3>Feedback (Nguing)</h3>
+                <p>Turunkan Fader / Potong EQ.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-wave-square"></i></div>
+                <h3>Humming</h3>
+                <p>Cek Grounding Listrik.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 21: Power Off Ritual -->
+<div class="slide-container">
+    <h2 class="slide-title">The Shutdown Ritual</h2>
+    <p>Kebalikan dari menyalakan.</p>
+    <div class="content-area">
+        <div class="highlight-numbers-layout">
+            <div class="number-card active">
+                <div class="number">1</div>
+                <h3>Speaker</h3>
+                <p>Matikan DULUAN!</p>
+            </div>
+            <div class="number-card">
+                <div class="number">2</div>
+                <h3>Mixer</h3>
+                <p>Setelah speaker mati.</p>
+            </div>
+            <div class="number-card">
+                <div class="number">3</div>
+                <h3>Source</h3>
+                <p>Cabut kabel.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 22: Maintenance -->
+<div class="slide-container">
+    <h2 class="slide-title">Maintenance</h2>
+    <div class="content-area">
+        <div class="rounded-image-layout">
+            <div class="rounded-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1520697830682-bbb6e85e2b0b?q=80&w=2070&auto=format&fit=crop" alt="Technician coiling xlr cable">
+            </div>
+            <div>
+                <h3>Over/Under Technique</h3>
+                <p>Jangan gulung di siku tangan! Kabel jadi keriting & putus dalam.</p>
+                <p class="tech-font">TIP: Bersihkan fader dari debu.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Slide 23: Q&A -->
 <div class="slide-container">
-    <div class="content-area" style="text-align:center;">
-        <h2>Q & A</h2>
-        <p>Terima kasih.</p>
+    <div class="content-area">
+        <div class="qa-layout">
+            <h2>Q & A</h2>
+            <p>Terima kasih.</p>
+            <div style="margin-top: 20px; color: #666;">
+                <i class="fa-solid fa-envelope"></i> contact@yourproduction.com
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- NAVIGATION UI -->
 <div class="nav-controls">
     <button class="nav-btn" onclick="changeSlide(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-    <span class="slide-counter" id="slideCounter">1 / 9</span>
+    <span class="slide-counter" id="slideCounter">1 / 23</span>
     <button class="nav-btn" onclick="changeSlide(1)"><i class="fa-solid fa-chevron-right"></i></button>
 </div>
 
 <script>
-    // --- NAVIGATION LOGIC ---
+    function scaleToFit() {
+        const slides = document.querySelectorAll('.slide-container');
+        if(window.innerWidth < 1024) {
+            // Mobile: Reset transforms
+            slides.forEach(s => { s.style.transform = 'none'; s.style.position = 'relative'; });
+            return; 
+        }
+        // Desktop Scaling
+        const baseW = 1280, baseH = 720;
+        const scale = Math.min(window.innerWidth/baseW, window.innerHeight/baseH, 1);
+        slides.forEach(s => {
+            s.style.transform = `scale(${scale * 0.95})`;
+            s.style.position = 'absolute';
+        });
+    }
+
+    window.addEventListener('resize', scaleToFit);
+    window.addEventListener('load', scaleToFit);
+
     let currentSlideIndex = 0;
-    const slides = Array.from(document.querySelectorAll('.slide-container'));
+    const slides = document.querySelectorAll('.slide-container');
     const counterDisplay = document.getElementById('slideCounter');
 
     function showSlide(index) {
@@ -293,39 +718,33 @@
         else if (index < 0) currentSlideIndex = slides.length - 1;
         else currentSlideIndex = index;
 
-        slides.forEach(slide => slide.classList.remove('active'));
-        if (slides[currentSlideIndex]) {
-            slides[currentSlideIndex].classList.add('active');
-        }
+        slides.forEach(s => s.classList.remove('active'));
+        slides[currentSlideIndex].classList.add('active');
         
         counterDisplay.innerText = `${currentSlideIndex + 1} / ${slides.length}`;
         sessionStorage.setItem('presentation_slide_index', currentSlideIndex);
+        scaleToFit();
+        
+        // Reset scroll on mobile
+        if(window.innerWidth < 1024) window.scrollTo(0,0);
     }
 
-    function changeSlide(direction) {
-        showSlide(currentSlideIndex + direction);
-    }
+    function changeSlide(d) { showSlide(currentSlideIndex + d); }
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === ' ') changeSlide(1);
-        else if (e.key === 'ArrowLeft') changeSlide(-1);
+        if (e.key === 'ArrowLeft') changeSlide(-1);
     });
 
-    let touchStartX = 0;
-    let touchEndX = 0;
-    document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
-    document.body.addEventListener('touchend', e => { 
-        touchEndX = e.changedTouches[0].screenX;
-        if (touchEndX < touchStartX - 50) changeSlide(1); 
-        if (touchEndX > touchStartX + 50) changeSlide(-1);
+    let ts = 0;
+    document.addEventListener('touchstart', e => ts = e.changedTouches[0].screenX);
+    document.addEventListener('touchend', e => { 
+        if (e.changedTouches[0].screenX < ts - 50) changeSlide(1); 
+        if (e.changedTouches[0].screenX > ts + 50) changeSlide(-1);
     });
 
-    const savedIndex = sessionStorage.getItem('presentation_slide_index');
-    if (savedIndex !== null) {
-        showSlide(parseInt(savedIndex)); 
-    } else {
-        showSlide(0); 
-    }
+    const saved = sessionStorage.getItem('presentation_slide_index');
+    if (saved !== null) showSlide(parseInt(saved)); else showSlide(0);
 </script>
 
 </body>
