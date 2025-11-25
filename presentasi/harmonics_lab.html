@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonics & Timbre Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* TOMBOL BACK */
+        .btn-back {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(50,50,50,0.8); color: white;
+            border: 1px solid #666; padding: 8px 15px;
+            border-radius: 30px; cursor: pointer; z-index: 100;
+        }
+
+        h1 { color: #00ff9d; margin-bottom: 5px; font-weight: 300; }
+        p { color: #888; font-size: 12px; margin-bottom: 20px; }
+
+        .visualizer-box {
+            width: 90%;
+            max-width: 800px;
+            height: 300px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+
+        .fader-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+        }
+
+        .fader-track {
+            width: 10px;
+            height: 150px;
+            background: #000;
+            border-radius: 5px;
+            position: relative;
+            margin: 10px 0;
+            border: 1px solid #555;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 150px; height: 10px;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; height: 20px;
+            background: #444;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        /* Warna Fader Fundamental */
+        #vol1::-webkit-slider-thumb { background: #00ff9d; border-color: #00ff9d; }
+        
+        label { font-size: 10px; color: #aaa; text-align: center; height: 30px; }
+        .freq-label { font-size: 9px; color: #555; margin-top: 5px; }
+
+        .main-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn-main {
+            padding: 10px 30px; font-size: 16px; font-weight: bold;
+            background: transparent; color: #00ff9d; border: 2px solid #00ff9d;
+            border-radius: 50px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-main:hover { background: #00ff9d; color: #000; box-shadow: 0 0 20px rgba(0,255,157,0.4); }
+        .btn-main.active { background: #ff3366; border-color: #ff3366; color: white; }
+
+        /* Preset Buttons */
+        .presets { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-preset { background: #333; color: #ccc; border: 1px solid #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-preset:hover { border-color: #fff; color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <button class="btn-back" onclick="goBack()">⬅ Kembali</button>
+
+    <h1>Harmonics & Timbre Lab</h1>
+    <p>Suara alami adalah campuran dari Frekuensi Dasar (Fundamental) + Kelipatan (Harmonics)</p>
+
+    <div class="visualizer-box">
+        <canvas id="scope"></canvas>
+    </div>
+
+    <div class="controls">
+        <!-- Fundamental -->
+        <div class="fader-group">
+            <label>FUNDAMENTAL<br>(1x)</label>
+            <div class="fader-track">
+                <input type="range" id="vol1" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="freq-label" id="lbl1">200Hz</div>
+        </div>
+
+        <!-- Harmonics -->
+        <div class="fader-group">
+            <label>2nd<br>(2x)</label>
+            <div class="fader-track"><input type="range" id="vol2" min="0" max="1" step="0.01" value="0"></div>
+            <div class="freq-label" id="lbl2">400Hz</div>
+        </div>
+        <div class="fader-group">
+            <label>3rd<br>(3x)</label>
+            <div class="fader-track"><input type="range" id="vol3" min="0" max="1" step="0.01" value="0"></div>
+            <div class="freq-label" id="lbl3">600Hz</div>
+        </div>
+        <div class="fader-group">
+            <label>4th<br>(4x)</label>
+            <div class="fader-track"><input type="range" id="vol4" min="0" max="1" step="0.01" value="0"></div>
+            <div class="freq-label" id="lbl4">800Hz</div>
+        </div>
+        <div class="fader-group">
+            <label>5th<br>(5x)</label>
+            <div class="fader-track"><input type="range" id="vol5" min="0" max="1" step="0.01" value="0"></div>
+            <div class="freq-label" id="lbl5">1000Hz</div>
+        </div>
+        <div class="fader-group">
+            <label>6th<br>(6x)</label>
+            <div class="fader-track"><input type="range" id="vol6" min="0" max="1" step="0.01" value="0"></div>
+            <div class="freq-label" id="lbl6">1200Hz</div>
+        </div>
+    </div>
+
+    <div class="presets">
+        <button class="btn-preset" onclick="setPreset('sine')">Pure Sine</button>
+        <button class="btn-preset" onclick="setPreset('saw')">Sawtooth (Tajam)</button>
+        <button class="btn-preset" onclick="setPreset('square')">Square (Kotak)</button>
+        <button class="btn-preset" onclick="setPreset('organ')">Organ Sound</button>
+    </div>
+
+    <div class="main-controls">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <label style="margin-bottom:5px;">BASE FREQ</label>
+            <input type="range" id="baseFreq" min="50" max="400" value="200" style="width:200px; position:static; transform:none; height:5px;">
+            <span id="baseFreqVal" style="font-size:12px; color:#00ff9d;">200 Hz</span>
+        </div>
+        <button id="powerBtn" class="btn-main" onclick="toggleSound()">PLAY SOUND ▶</button>
+    </div>
+
+    <script>
+        function goBack() {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = 'sound_system_workflow.html';
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillators = [];
+        let gains = [];
+        let masterGain;
+        let isPlaying = false;
+        let baseFreq = 200;
+        const numHarmonics = 6;
+
+        // Canvas Setup
+        const canvas = document.getElementById('scope');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = canvas.clientWidth;
+            height = canvas.height = canvas.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Init Audio Nodes
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.3; // Master volume agar tidak pecah
+        masterGain.connect(audioCtx.destination);
+
+        function toggleSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            if (isPlaying) {
+                oscillators.forEach(osc => osc.stop());
+                oscillators = [];
+                gains = [];
+                isPlaying = false;
+                document.getElementById('powerBtn').innerText = "PLAY SOUND ▶";
+                document.getElementById('powerBtn').classList.remove('active');
+            } else {
+                // Create 6 Oscillators
+                for (let i = 1; i <= numHarmonics; i++) {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.frequency.value = baseFreq * i;
+                    
+                    // Ambil nilai dari slider
+                    let sliderVal = document.getElementById('vol' + i).value;
+                    gain.gain.value = parseFloat(sliderVal);
+
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start();
+
+                    oscillators.push(osc);
+                    gains.push(gain);
+                }
+                isPlaying = true;
+                document.getElementById('powerBtn').innerText = "STOP ⏹";
+                document.getElementById('powerBtn').classList.add('active');
+                draw();
+            }
+        }
+
+        // Update frequency & gains realtime
+        function updateAudio() {
+            document.getElementById('baseFreqVal').innerText = baseFreq + " Hz";
+            
+            for (let i = 1; i <= numHarmonics; i++) {
+                // Update Label Frequency
+                document.getElementById('lbl' + i).innerText = (baseFreq * i) + "Hz";
+
+                if (isPlaying) {
+                    oscillators[i-1].frequency.value = baseFreq * i;
+                    let sliderVal = document.getElementById('vol' + i).value;
+                    gains[i-1].gain.value = parseFloat(sliderVal);
+                }
+            }
+        }
+
+        // Listeners
+        document.getElementById('baseFreq').addEventListener('input', e => {
+            baseFreq = parseInt(e.target.value);
+            updateAudio();
+        });
+
+        for(let i=1; i<=numHarmonics; i++) {
+            document.getElementById('vol'+i).addEventListener('input', updateAudio);
+        }
+
+        // Visualizer Logic (Draw Waveform)
+        function draw() {
+            if(!isPlaying) {
+                ctx.clearRect(0,0,width,height);
+                ctx.beginPath(); ctx.strokeStyle='#333'; ctx.moveTo(0, height/2); ctx.lineTo(width, height/2); ctx.stroke();
+                return;
+            }
+            
+            requestAnimationFrame(draw);
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,width,height);
+
+            // Draw Center Line
+            ctx.strokeStyle = '#222'; ctx.lineWidth=1; 
+            ctx.beginPath(); ctx.moveTo(0, height/2); ctx.lineTo(width, height/2); ctx.stroke();
+
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#00ff9d";
+            ctx.shadowBlur = 10; ctx.shadowColor = "#00ff9d";
+
+            // Simulate Waveform Addition
+            for (let x = 0; x < width; x++) {
+                let y = 0;
+                // Sum of sines: A1*sin(f*t) + A2*sin(2f*t) + ...
+                // t dipetakan ke x
+                let t = (x / width) * (Math.PI * 4); // 2 cycles visible
+
+                for (let i = 1; i <= numHarmonics; i++) {
+                    let amp = parseFloat(document.getElementById('vol' + i).value);
+                    y += amp * Math.sin(t * i);
+                }
+
+                // Scale y for display
+                let plotY = (height / 2) - (y * 40); 
+
+                if (x === 0) ctx.moveTo(x, plotY);
+                else ctx.lineTo(x, plotY);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw faint individual waves (Optional, for education)
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 3; i++) { // Draw first 3 only to avoid clutter
+                let amp = parseFloat(document.getElementById('vol' + i).value);
+                if(amp > 0.1) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(255, 255, 255, 0.2)`;
+                    for (let x = 0; x < width; x++) {
+                        let t = (x / width) * (Math.PI * 4);
+                        let y = amp * Math.sin(t * i);
+                        let plotY = (height / 2) - (y * 40);
+                        if(x===0) ctx.moveTo(x, plotY); else ctx.lineTo(x, plotY);
+                    }
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Presets
+        function setPreset(type) {
+            const presets = {
+                'sine': [1, 0, 0, 0, 0, 0],
+                'saw': [1, 0.5, 0.33, 0.25, 0.2, 0.16], // 1/n
+                'square': [1, 0, 0.33, 0, 0.2, 0], // Odd harmonics
+                'organ': [1, 0.5, 1, 0.2, 0.5, 0.1] // Random rich
+            };
+            const vals = presets[type];
+            for(let i=0; i<6; i++) {
+                document.getElementById('vol'+(i+1)).value = vals[i];
+            }
+            updateAudio();
+        }
+
+    </script>
+</body>
+</html>

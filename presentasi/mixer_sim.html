@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Audio Mixer Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1a1a1a;
+            --panel-grey: #2d2d2d;
+            --knob-color: #444;
+            --accent-blue: #00d2ff;
+            --accent-green: #00ff9d;
+            --accent-red: #ff3366;
+            --accent-yellow: #ffd700;
+            --text-light: #ccc;
+        }
+
+        body {
+            background-color: #111;
+            color: var(--text-light);
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        /* TOMBOL BACK */
+        .btn-back {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(50,50,50,0.8); color: white;
+            border: 1px solid #666; padding: 8px 15px;
+            border-radius: 30px; cursor: pointer; z-index: 100;
+        }
+
+        h2 { color: var(--accent-blue); margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* LAYOUT UTAMA (3 KOLOM SEKARANG) */
+        .console-wrapper {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border-top: 5px solid #444;
+            flex-wrap: wrap; /* Agar responsif di layar kecil */
+            justify-content: center;
+        }
+
+        /* CHANNEL STRIP (KIRI) */
+        .channel-strip, .master-section {
+            width: 140px;
+            background: var(--panel-grey);
+            border: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 5px;
+            border-radius: 4px;
+        }
+        .master-section { background: #222; }
+
+        /* VISUAL EQ SCREEN (TENGAH - BARU) */
+        .screen-section {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .eq-screen {
+            width: 100%;
+            height: 200px;
+            background-color: #050505;
+            border: 2px solid #555;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        canvas#eqCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .screen-info {
+            background: #111;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            font-size: 11px;
+            color: #888;
+            height: 100%;
+        }
+        .screen-info h4 { color: var(--accent-blue); margin: 0 0 5px 0; border-bottom: 1px solid #333; padding-bottom: 3px;}
+
+        /* KOMPONEN VISUAL LAINNYA TETAP SAMA */
+        .section-label { width: 100%; text-align: center; font-size: 10px; background: #000; color: #888; margin: 5px 0; padding: 2px 0; }
+        .knob-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; }
+        .knob-label { font-size: 10px; margin-bottom: 2px; color: #aaa; }
+        
+        input[type=range].knob-slider { -webkit-appearance: none; width: 80%; height: 4px; background: #111; border-radius: 2px; outline: none; }
+        input[type=range].knob-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--knob-color); border: 2px solid #fff; cursor: pointer; }
+        .k-red::-webkit-slider-thumb { background: var(--accent-red); border-color: var(--accent-red); }
+        .k-blue::-webkit-slider-thumb { background: var(--accent-blue); border-color: var(--accent-blue); }
+        .k-green::-webkit-slider-thumb { background: var(--accent-green); border-color: var(--accent-green); }
+        .k-yellow::-webkit-slider-thumb { background: var(--accent-yellow); border-color: var(--accent-yellow); }
+        .k-white::-webkit-slider-thumb { background: #fff; border-color: #aaa; }
+
+        .btn-rect { width: 80%; font-size: 10px; background: #444; border: 1px solid #000; color: #fff; padding: 4px; margin: 2px 0; cursor: pointer; }
+        .btn-rect.active { background: var(--accent-yellow); color: black; font-weight: bold; box-shadow: 0 0 5px var(--accent-yellow); }
+        .btn-mute.active { background: var(--accent-red); color: white; box-shadow: 0 0 5px var(--accent-red); }
+        .btn-solo.active { background: var(--accent-blue); color: black; box-shadow: 0 0 5px var(--accent-blue); animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .fader-track { width: 40px; height: 250px; background: #111; border-radius: 4px; position: relative; margin: 10px 0; border: 1px solid #555; }
+        input[type=range].fader { -webkit-appearance: none; position: absolute; top: 50%; left: 50%; width: 240px; height: 40px; transform: translate(-50%, -50%) rotate(-90deg); background: transparent; outline: none; }
+        input[type=range].fader::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 50px; background: linear-gradient(to bottom, #555, #222); border: 1px solid #888; border-radius: 2px; cursor: ns-resize; box-shadow: 0 4px 5px rgba(0,0,0,0.5); }
+        .master-fader::-webkit-slider-thumb { background: var(--accent-red); }
+
+        .meter-strip { display: flex; gap: 2px; height: 250px; padding: 5px; background: #000; border: 1px solid #444; margin-bottom: 10px; }
+        .led-bar { width: 10px; background: #222; display: flex; flex-direction: column-reverse; overflow: hidden; }
+        .led-segment { width: 100%; height: 4px; margin-bottom: 1px; opacity: 0.2; }
+        .led-green { background: #00ff00; }
+        .led-yellow { background: #ffff00; }
+        .led-red { background: #ff0000; }
+        .led-segment.on { opacity: 1; box-shadow: 0 0 4px currentColor; }
+        .clip-led { width: 10px; height: 10px; border-radius: 50%; background: #300; margin: 5px auto; border: 1px solid #555; transition: background 0.05s; }
+        .clip-led.on { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+
+        .source-control { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444; }
+        .play-btn { padding: 10px 30px; font-size: 16px; font-weight: bold; background: var(--accent-blue); border: none; border-radius: 5px; cursor: pointer; }
+        .play-btn.stop { background: var(--accent-red); color: white; }
+        .file-upload-btn { background: #444; color: white; padding: 10px 15px; border-radius: 5px; cursor: pointer; border: 1px solid #666; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .file-upload-btn:hover { background: #555; border-color: white; }
+        #sourceSelect { padding: 10px; background: #111; color: white; border: 1px solid #555; border-radius: 5px; max-width: 300px; }
+        .loading-msg { color: var(--accent-yellow); display: none; font-size: 12px; margin-top: 5px; width: 100%; text-align: center; }
+
+    </style>
+</head>
+<body>
+
+    <button class="btn-back" onclick="goBack()">⬅ Kembali</button>
+
+    <h2>Mixer Lab Simulator</h2>
+
+    <div class="source-control">
+        <button id="powerBtn" class="play-btn" onclick="togglePower()">POWER ON ⚡</button>
+        <input type="file" id="fileInput" accept=".wav, .mp3, .ogg, audio/*" multiple style="display: none;" onchange="handleFiles(this.files)">
+        <label for="fileInput" class="file-upload-btn">📂 LOAD AUDIO (WAV/MP3)</label>
+        <select id="sourceSelect" onchange="changeSourceIfPlaying()">
+            <option value="tone">INTERNAL: Test Tone (1kHz)</option>
+            <option value="synth_drum">INTERNAL: Synth Drum</option>
+        </select>
+        <span class="loading-msg" id="loadingMsg">Sedang memuat audio...</span>
+    </div>
+
+    <div class="console-wrapper">
+        <!-- 1. CHANNEL STRIP -->
+        <div class="channel-strip">
+            <div class="section-label">PRE-AMP</div>
+            <div class="clip-led" id="ch1Clip"></div>
+            <div class="knob-group"><label class="knob-label">GAIN</label><input type="range" min="0" max="2" step="0.01" value="0.5" class="knob-slider k-red" id="gainKnob"></div>
+            <button class="btn-rect" id="lowCutBtn" onclick="toggleLowCut()">LOW CUT /80Hz</button>
+
+            <div class="section-label">DYNAMICS</div>
+            <div class="knob-group"><label class="knob-label">COMP</label><input type="range" min="0" max="1" step="0.01" value="0" class="knob-slider k-yellow" id="compKnob"></div>
+
+            <div class="section-label">EQUALIZER</div>
+            <div class="knob-group"><label class="knob-label">HIGH (10k)</label><input type="range" min="-15" max="15" value="0" class="knob-slider k-blue" id="eqHigh"></div>
+            <div class="knob-group"><label class="knob-label">MID (1k)</label><input type="range" min="-15" max="15" value="0" class="knob-slider k-blue" id="eqMid"></div>
+            <div class="knob-group"><label class="knob-label">LOW (200)</label><input type="range" min="-15" max="15" value="0" class="knob-slider k-blue" id="eqLow"></div>
+
+            <div class="section-label">AUX / FX</div>
+            <div class="knob-group"><label class="knob-label">AUX 1</label><input type="range" min="0" max="1" step="0.01" value="0" class="knob-slider k-green" id="auxSend"></div>
+            <div class="knob-group"><label class="knob-label">FX SEND</label><input type="range" min="0" max="1" step="0.01" value="0" class="knob-slider k-white" id="fxSend"></div>
+
+            <div class="section-label">PAN</div>
+            <div class="knob-group"><label class="knob-label">L - R</label><input type="range" min="-1" max="1" step="0.1" value="0" class="knob-slider" id="panKnob"></div>
+
+            <div class="section-label">ROUTING</div>
+            <button class="btn-rect btn-mute" id="muteBtn" onclick="toggleMute()">MUTE</button>
+            <button class="btn-rect btn-solo" id="soloBtn" onclick="toggleSolo()">SOLO (PFL)</button>
+            <button class="btn-rect active" id="routingBtn" onclick="toggleRouting()">L-R MAIN</button>
+
+            <div class="fader-track"><input type="range" min="0" max="1.2" step="0.01" value="0" class="fader" id="chFader"></div>
+            <div class="knob-label">CH 1</div>
+        </div>
+
+        <!-- 2. VISUAL EQ SCREEN (BARU) -->
+        <div class="screen-section">
+            <div class="section-label">VISUAL EQUALIZER</div>
+            <div class="eq-screen">
+                <canvas id="eqCanvas" width="300" height="200"></canvas>
+            </div>
+            <div class="screen-info">
+                <h4>INFO JALUR</h4>
+                <p id="infoText">
+                    Gain Staging: <span id="valGain">50%</span><br>
+                    Compression: <span id="valComp">0%</span><br>
+                    Pan: <span id="valPan">Center</span><br>
+                    FX Send: <span id="valFx">0%</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. MASTER SECTION -->
+        <div class="master-section">
+            <div class="section-label">AUX MASTER</div>
+            <div class="knob-group"><label class="knob-label">AUX 1 OUT</label><input type="range" min="0" max="1" step="0.01" value="0.8" class="knob-slider k-green" id="auxMaster"></div>
+
+            <div class="section-label">MAIN METERS</div>
+            <div class="meter-strip" id="meterBridge">
+                <div class="led-bar" id="meterL"></div>
+                <div class="led-bar" id="meterR"></div>
+            </div>
+            <div class="clip-led" id="masterClip"></div>
+            <div class="fader-track"><input type="range" min="0" max="1.2" step="0.01" value="0.8" class="fader master-fader" id="masterFader"></div>
+            <div class="knob-label">STEREO OUT</div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = 'sound_system_workflow.html';
+        }
+
+        let uploadedFiles = [];
+        function handleFiles(files) {
+            if (!files.length) return;
+            const select = document.getElementById('sourceSelect');
+            Array.from(files).forEach((file, index) => {
+                uploadedFiles.push(file);
+                const option = document.createElement('option');
+                option.value = `file_${uploadedFiles.length - 1}`;
+                option.text = `📄 ${file.name}`;
+                select.appendChild(option);
+            });
+            select.value = `file_${uploadedFiles.length - files.length}`;
+            if (isPlaying) { togglePower(); setTimeout(togglePower, 200); }
+        }
+        function changeSourceIfPlaying() { if (isPlaying) { togglePower(); setTimeout(togglePower, 100); } }
+
+        // --- AUDIO ENGINE ---
+        let audioCtx, sourceNode;
+        let gainInput, lowCutFilter, compressor, eqHigh, eqMid, eqLow, panner;
+        let muteNode, chFader, routingNode, masterFader, analyser;
+        let pflGain, mainMonGain; 
+        let distortionNode; 
+        let fxSendGain, delayNode, delayFeedback;
+        
+        let isPlaying = false;
+        let clipHoldTime = 0;
+
+        const els = {
+            gain: document.getElementById('gainKnob'),
+            lowCut: document.getElementById('lowCutBtn'),
+            comp: document.getElementById('compKnob'),
+            eqH: document.getElementById('eqHigh'),
+            eqM: document.getElementById('eqMid'),
+            eqL: document.getElementById('eqLow'),
+            pan: document.getElementById('panKnob'),
+            mute: document.getElementById('muteBtn'),
+            solo: document.getElementById('soloBtn'),
+            routing: document.getElementById('routingBtn'),
+            chFader: document.getElementById('chFader'),
+            masterFader: document.getElementById('masterFader'),
+            clipLed: document.getElementById('ch1Clip'),
+            masterClipLed: document.getElementById('masterClip'),
+            meterL: document.getElementById('meterL'),
+            meterR: document.getElementById('meterR'),
+            fxSend: document.getElementById('fxSend'),
+            // Display info
+            valGain: document.getElementById('valGain'),
+            valComp: document.getElementById('valComp'),
+            valPan: document.getElementById('valPan'),
+            valFx: document.getElementById('valFx'),
+            eqCanvas: document.getElementById('eqCanvas')
+        };
+
+        let state = { lowCut: false, mute: false, solo: false, routedToMain: true };
+
+        function createLeds(container) {
+            for(let i=0; i<20; i++) {
+                let div = document.createElement('div');
+                div.className = 'led-segment';
+                if(i > 16) div.classList.add('led-red');
+                else if(i > 12) div.classList.add('led-yellow');
+                else div.classList.add('led-green');
+                container.appendChild(div);
+            }
+        }
+        createLeds(els.meterL); createLeds(els.meterR);
+
+        async function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            gainInput = audioCtx.createGain();
+            distortionNode = audioCtx.createWaveShaper(); makeDistortionCurve(distortionNode);
+            lowCutFilter = audioCtx.createBiquadFilter(); lowCutFilter.type = "highpass"; lowCutFilter.frequency.value = 0; 
+            compressor = audioCtx.createDynamicsCompressor();
+            
+            // EQ CONFIG
+            eqHigh = audioCtx.createBiquadFilter(); eqHigh.type = "highshelf"; eqHigh.frequency.value = 10000;
+            eqMid = audioCtx.createBiquadFilter(); eqMid.type = "peaking"; eqMid.frequency.value = 1000; eqMid.Q.value = 1;
+            eqLow = audioCtx.createBiquadFilter(); eqLow.type = "lowshelf"; eqLow.frequency.value = 200;
+
+            panner = audioCtx.createStereoPanner();
+            muteNode = audioCtx.createGain();
+            chFader = audioCtx.createGain();
+            routingNode = audioCtx.createGain(); 
+            masterFader = audioCtx.createGain();
+            analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
+            pflGain = audioCtx.createGain(); pflGain.gain.value = 0;
+            mainMonGain = audioCtx.createGain(); mainMonGain.gain.value = 1;
+
+            // FX
+            fxSendGain = audioCtx.createGain();
+            delayNode = audioCtx.createDelay(); delayNode.delayTime.value = 0.4;
+            delayFeedback = audioCtx.createGain(); delayFeedback.gain.value = 0.4;
+
+            // ROUTING
+            gainInput.connect(distortionNode);
+            distortionNode.connect(lowCutFilter);
+            lowCutFilter.connect(compressor);
+            compressor.connect(eqHigh); eqHigh.connect(eqMid); eqMid.connect(eqLow);
+            eqLow.connect(panner);
+
+            eqLow.connect(fxSendGain); fxSendGain.connect(delayNode); delayNode.connect(delayFeedback); delayFeedback.connect(delayNode); delayNode.connect(masterFader); 
+
+            panner.connect(pflGain); pflGain.connect(analyser);
+            panner.connect(muteNode); muteNode.connect(chFader); chFader.connect(routingNode); routingNode.connect(masterFader);
+            masterFader.connect(audioCtx.destination); masterFader.connect(mainMonGain); mainMonGain.connect(analyser); 
+
+            updateAudioParams();
+            drawEQCurve(); // First draw
+        }
+
+        function makeDistortionCurve(node) {
+            const k = 50; const n_samples = 44100; const curve = new Float32Array(n_samples);
+            for (let i = 0; i < n_samples; ++i) {
+                const x = i * 2 / n_samples - 1;
+                curve[i] = (Math.PI + k) * x / (Math.PI + k * Math.abs(x));
+            }
+            node.curve = curve; node.oversample = '4x';
+        }
+
+        async function loadAudioFile(url) {
+            const loadingMsg = document.getElementById('loadingMsg');
+            loadingMsg.style.display = 'inline';
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error("File tidak ditemukan");
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer; source.loop = true;
+                loadingMsg.style.display = 'none';
+                return source;
+            } catch (e) { loadingMsg.innerText = "Error: " + e.message; console.error(e); return null; }
+        }
+
+        async function createSource() {
+            const selectVal = document.getElementById('sourceSelect').value;
+            if (selectVal === 'tone') {
+                sourceNode = audioCtx.createOscillator(); sourceNode.type = 'sine'; sourceNode.frequency.value = 1000; sourceNode.start(); sourceNode.connect(gainInput);
+            } else if (selectVal === 'synth_drum') {
+                const bufferSize = audioCtx.sampleRate * 2; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) { let t = i / audioCtx.sampleRate; let beat = Math.floor(t * 4); let env = Math.exp(-(t * 4 - beat) * 10); if(beat % 2 === 0) data[i] = Math.sin(i * 0.01) * env; else data[i] = (Math.random() * 2 - 1) * env * 0.5; }
+                sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = buffer; sourceNode.loop = true; sourceNode.start(); sourceNode.connect(gainInput);
+            } else if (selectVal.startsWith('file_')) {
+                const fileIndex = parseInt(selectVal.split('_')[1]); const file = uploadedFiles[fileIndex];
+                if (file) {
+                    const loadingMsg = document.getElementById('loadingMsg'); loadingMsg.style.display = 'inline';
+                    try {
+                        const arrayBuffer = await file.arrayBuffer(); const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                        sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuffer; sourceNode.loop = true; sourceNode.start(); sourceNode.connect(gainInput); loadingMsg.style.display = 'none';
+                    } catch (e) { loadingMsg.innerText = "Error: Format file tidak didukung."; return false; }
+                }
+            }
+            return true;
+        }
+
+        function updateAudioParams() {
+            if(!audioCtx) return;
+            // 1. VALUES TO NODES
+            let rawGain = parseFloat(els.gain.value); gainInput.gain.value = rawGain; 
+            if (rawGain > 1.5) els.clipLed.classList.add('on'); else els.clipLed.classList.remove('on');
+
+            eqHigh.gain.value = parseFloat(els.eqH.value);
+            eqMid.gain.value = parseFloat(els.eqM.value);
+            eqLow.gain.value = parseFloat(els.eqL.value);
+            
+            let compVal = parseFloat(els.comp.value); compressor.threshold.value = -100 * compVal; compressor.ratio.value = 1 + (compVal * 10);
+            fxSendGain.gain.value = parseFloat(els.fxSend.value);
+            panner.pan.value = parseFloat(els.pan.value);
+            chFader.gain.value = parseFloat(els.chFader.value);
+            masterFader.gain.value = parseFloat(els.masterFader.value);
+
+            // 2. UPDATE INFO TEXT
+            els.valGain.innerText = Math.round(rawGain * 50) + "%";
+            els.valComp.innerText = Math.round(compVal * 100) + "%";
+            els.valPan.innerText = els.pan.value == 0 ? "Center" : (els.pan.value < 0 ? "Left " + Math.abs(els.pan.value*100).toFixed(0) : "Right " + (els.pan.value*100).toFixed(0));
+            els.valFx.innerText = Math.round(els.fxSend.value * 100) + "%";
+
+            // 3. REDRAW EQ
+            drawEQCurve();
+        }
+
+        async function togglePower() {
+            const btn = document.getElementById('powerBtn');
+            if(!isPlaying) {
+                if(!audioCtx) await initAudio();
+                if(audioCtx.state === 'suspended') await audioCtx.resume();
+                btn.innerText = "LOADING...";
+                const success = await createSource();
+                if (success && sourceNode) { isPlaying = true; btn.innerText = "POWER OFF"; btn.classList.add('stop'); animateMeters(); } 
+                else { btn.innerText = "POWER ON ⚡"; }
+            } else {
+                if(sourceNode) { sourceNode.stop(); sourceNode.disconnect(); }
+                isPlaying = false; btn.innerText = "POWER ON ⚡"; btn.classList.remove('stop');
+            }
+        }
+
+        function toggleLowCut() { state.lowCut = !state.lowCut; lowCutFilter.frequency.value = state.lowCut ? 80 : 0; els.lowCut.classList.toggle('active'); drawEQCurve(); }
+        function toggleMute() { state.mute = !state.mute; muteNode.gain.value = state.mute ? 0 : 1; els.mute.classList.toggle('active'); }
+        function toggleSolo() { 
+            state.solo = !state.solo; els.solo.classList.toggle('active'); 
+            if(state.solo) { pflGain.gain.value = 1; mainMonGain.gain.value = 0; } else { pflGain.gain.value = 0; mainMonGain.gain.value = 1; }
+        }
+        function toggleRouting() { state.routedToMain = !state.routedToMain; routingNode.gain.value = state.routedToMain ? 1 : 0; els.routing.classList.toggle('active'); }
+
+        [els.gain, els.eqH, els.eqM, els.eqL, els.comp, els.pan, els.chFader, els.masterFader, els.fxSend].forEach(el => {
+            el.addEventListener('input', updateAudioParams);
+        });
+
+        function animateMeters() {
+            if(!isPlaying) return;
+            requestAnimationFrame(animateMeters);
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteTimeDomainData(dataArray);
+            let sum = 0; let peak = 0; 
+            for(let i = 0; i < dataArray.length; i++) { 
+                let x = (dataArray[i] - 128) / 128; sum += x * x;
+                if(Math.abs(x) > peak) peak = Math.abs(x);
+            }
+            if (peak > 0.95) { els.masterClipLed.classList.add('on'); clipHoldTime = 20; } 
+            else if (clipHoldTime > 0) { clipHoldTime--; } else { els.masterClipLed.classList.remove('on'); }
+            let rms = Math.sqrt(sum / dataArray.length); let level = Math.min(Math.floor(rms * 40), 20);
+            const leftLeds = els.meterL.children; const rightLeds = els.meterR.children;
+            for(let i=0; i<20; i++) {
+                if(i < level) { leftLeds[i].classList.add('on'); rightLeds[i].classList.add('on'); } 
+                else { leftLeds[i].classList.remove('on'); rightLeds[i].classList.remove('on'); }
+            }
+        }
+
+        // --- EQ VISUALIZER LOGIC ---
+        function drawEQCurve() {
+            if(!audioCtx) return;
+            const canvas = els.eqCanvas;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 1. Background & Grid
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+            
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.beginPath();
+            // Horizontal center (0dB)
+            ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
+            // Verticals (Approx Log Scale)
+            // 100Hz (~25%), 1kHz (~50%), 10kHz (~75%)
+            ctx.moveTo(w*0.25, 0); ctx.lineTo(w*0.25, h);
+            ctx.moveTo(w*0.5, 0); ctx.lineTo(w*0.5, h);
+            ctx.moveTo(w*0.75, 0); ctx.lineTo(w*0.75, h);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#666'; ctx.font = '10px sans-serif';
+            ctx.fillText('100', w*0.25 + 2, h-5);
+            ctx.fillText('1k', w*0.5 + 2, h-5);
+            ctx.fillText('10k', w*0.75 + 2, h-5);
+            ctx.fillText('+15', 2, 10);
+            ctx.fillText('-15', 2, h-2);
+
+            // 2. Calculate Curve
+            const sampleCount = w; 
+            const freqArray = new Float32Array(sampleCount);
+            const magResponseLow = new Float32Array(sampleCount);
+            const magResponseMid = new Float32Array(sampleCount);
+            const magResponseHigh = new Float32Array(sampleCount);
+            const magResponseCut = new Float32Array(sampleCount);
+            const phaseResponse = new Float32Array(sampleCount); // Dummy
+
+            // Create log scale frequencies from 20Hz to 20kHz
+            for(let i=0; i<sampleCount; i++) {
+                // Normalized x from 0 to 1
+                let x = i / sampleCount;
+                // Log mapping: f = 20 * (1000^x) -> covers 20Hz to 20000Hz roughly
+                freqArray[i] = 20 * Math.pow(1000, x);
+            }
+
+            // Get response from web audio nodes
+            eqLow.getFrequencyResponse(freqArray, magResponseLow, phaseResponse);
+            eqMid.getFrequencyResponse(freqArray, magResponseMid, phaseResponse);
+            eqHigh.getFrequencyResponse(freqArray, magResponseHigh, phaseResponse);
+            lowCutFilter.getFrequencyResponse(freqArray, magResponseCut, phaseResponse);
+
+            // 3. Draw Combined Curve
+            ctx.strokeStyle = '#00d2ff'; ctx.lineWidth = 2; ctx.beginPath();
+
+            for(let i=0; i<sampleCount; i++) {
+                // Combine magnitudes (Multiplication in linear, Addition in dB)
+                // Since nodes are chained: Total Mag = Mag1 * Mag2 * Mag3
+                let totalMag = magResponseLow[i] * magResponseMid[i] * magResponseHigh[i] * magResponseCut[i];
+                
+                // Convert to dB: 20 * log10(mag)
+                let db = 20 * Math.log10(totalMag);
+
+                // Map dB to Y pixel (Range +/- 18dB approx for visual)
+                // 0dB = h/2. +18dB = 0 (top). -18dB = h (bottom).
+                let y = h/2 - (db * (h/2) / 18);
+
+                if(i===0) ctx.moveTo(i, y);
+                else ctx.lineTo(i, y);
+            }
+            ctx.stroke();
+        }
+
+    </script>
+</body>
+</html>
